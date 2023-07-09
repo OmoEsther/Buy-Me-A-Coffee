@@ -1,156 +1,143 @@
-import { $query, $update, Record, StableBTreeMap, Vec, Opt, match, Result, nat64, ic, Principal } from "azle";
+import { Principal } from "azle";
 import {
-    Address,
-    binaryAddressFromAddress,
-    TransferFee,
-    hexAddressFromPrincipal,
-    Ledger,
-    Tokens,
-    TransferResult
+  Address,
+  TransferFee,
+  hexAddressFromPrincipal,
+  Ledger,
+  Tokens,
+  TransferResult,
 } from 'azle/canisters/ledger';
 
 import { v4 as uuidv4 } from 'uuid';
 
-type Coffee = Record<{
-    id: string;
-    name: string;
-    timestamp: nat64;
-    message: string;
-}>
+type Coffee = {
+  id: string;
+  name: string;
+  timestamp: bigint;
+  message: string;
+};
 
-type CoffeePayload = Record<{
-    name: string;
-    message: string;
-    amount: nat64
-}>
+type CoffeePayload = {
+  name: string;
+  message: string;
+  amount: bigint;
+};
 
-// set up with address of canister
-const icpCanisterAddress: Address = "bkyz2-fmaaa-aaaaa-qaaaq-cai"
+const icpCanisterAddress: Address = "bkyz2-fmaaa-aaaaa-qaaaq-cai";
 
 const icpCanister = new Ledger(
-    Principal.fromText(icpCanisterAddress)
+  Principal.fromText(icpCanisterAddress)
 );
-
-// set up with wallet of local user 
-const owner: Principal = Principal.fromText("bnz7o-iuaaa-aaaaa-qaaaa-cai")
-
-$query;
-export function getAddressFromPrincipal(principal: Principal): string {
-    return hexAddressFromPrincipal(principal, 0);
-}
 
 const coffeeStorage = new StableBTreeMap<string, Coffee>(0, 44, 1024);
 
-$query;
-export function getCoffees(): Result<Vec<Coffee>, string> {
-    return Result.Ok(coffeeStorage.values());
+export function getCoffees(): Coffee[] {
+  return coffeeStorage.values();
 }
 
-$query;
-export function getCoffee(id: string): Result<Coffee, string> {
-    return match(coffeeStorage.get(id), {
-        Some: (coffee) => Result.Ok<Coffee, string>(coffee),
-        None: () => Result.Err<Coffee, string>(`coffee information with id=${id} not found`)
-    });
+export function getCoffee(id: string): Coffee | null {
+  return coffeeStorage.get(id) || null;
 }
 
-$update;
-export async function sendCoffee(payload: CoffeePayload): Promise<Result<Coffee, string>> {
-    await depositCoffee(payload.amount);
-    const coffee: Coffee = { id: uuidv4(), timestamp: ic.time(), ...payload };
-    coffeeStorage.insert(coffee.id, coffee);
-    return  Result.Ok<Coffee, string>(coffee)
+export async function sendCoffee(payload: CoffeePayload): Promise<Coffee> {
+  await depositCoffee(payload.amount);
+  const coffee: Coffee = { id: uuidv4(), timestamp: BigInt(Date.now()), ...payload };
+  coffeeStorage.insert(coffee.id, coffee);
+  return coffee;
 }
 
-$update;
-export function deleteCoffee(id: string): Result<Coffee, string> {
-    return match(coffeeStorage.remove(id), {
-        Some: (deletedCoffee) => Result.Ok<Coffee, string>(deletedCoffee),
-        None: () => Result.Err<Coffee, string>(`couldn't delete coffee with id=${id}. message not found.`)
-    });
+export function deleteCoffee(id: string): Coffee | null {
+  const coffee = coffeeStorage.remove(id);
+  if (coffee) {
+    return coffee;
+  }
+  return null;
 }
 
-async function depositCoffee(
-    amount: nat64,
-): Promise<Result<TransferResult, string>> {
-    const balance = (await getAccountBalance(ic.caller().toText())).Ok?.e8s;
-    const transfer_fee = (await getTransferFee()).Ok?.transfer_fee.e8s
+async function depositCoffee(amount: bigint): Promise<TransferResult> {
+  const balance = (await getAccountBalance(ic.caller().toText()))?.Ok?.e8s;
+  const transferFee = (await getTransferFee())?.Ok?.transfer_fee?.e8s;
 
-    if(balance !== undefined && balance > amount){
-        return await icpCanister
-            .transfer({
-                memo: 0n,
-                amount: {
-                    e8s: amount
-                },
-                fee: {
-                    e8s: transfer_fee? transfer_fee : 10000n 
-                },
-                from_subaccount: Opt.None,
-                to: binaryAddressFromAddress(icpCanisterAddress),
-                created_at_time: Opt.None
-            })
-            .call();
-    } else{
-        ic.trap("Fund your account first")
-    }
+  if (balance !== undefined && balance >= amount) {
+    return await icpCanister.transfer({
+      memo: 0n,
+      amount: { e8s: amount },
+      fee: { e8s: transferFee ?? 10000n },
+      from_subaccount: null,
+      to: binaryAddressFromAddress(icpCanisterAddress),
+      created_at_time: null
+    }).call();
+  } else {
+    throw new Error("Fund your account first");
+  }
 }
 
-$update;
 export async function withdrawFunds(
-    to: Address,
-    amount: nat64,
-): Promise<Result<TransferResult, string>> {
-    if(ic.caller() !== owner){
-        ic.trap("Only owner can withdraw funds")
-    }
-    const balance = (await getAccountBalance(icpCanisterAddress)).Ok?.e8s;
-    const transfer_fee = (await getTransferFee()).Ok?.transfer_fee.e8s;
+  to: Address,
+  amount: bigint
+): Promise<TransferResult> {
+  if (ic.caller() !== owner) {
+    throw new Error("Only owner can withdraw funds");
+  }
 
-    if(balance !== undefined && balance > amount){
-        return await icpCanister
-        .transfer({
-            memo: 0n,
-            amount: {
-                e8s: amount
-            },
-            fee: {
-                e8s: transfer_fee? transfer_fee : 10000n 
-            },
-            from_subaccount: Opt.None,
-            to: binaryAddressFromAddress(to),
-            created_at_time: Opt.None
-        })
-        .call();
-    }else{
-        ic.trap("Fund your account first")
-    }
+  const balance = (await getAccountBalance(icpCanisterAddress))?.Ok?.e8s;
+  const transferFee = (await getTransferFee())?.Ok?.transfer_fee?.e8s;
+
+  if (balance !== undefined && balance >= amount) {
+    return await icpCanister.transfer({
+      memo: 0n,
+      amount: { e8s: amount },
+      fee: { e8s: transferFee ?? 10000n },
+      from_subaccount: null,
+      to: binaryAddressFromAddress(to),
+      created_at_time: null
+    }).call();
+  } else {
+    throw new Error("Fund your account first");
+  }
 }
 
-async function getAccountBalance(
-    address: Address
-): Promise<Result<Tokens, string>> {
-    return await icpCanister
-        .account_balance({
-            account: binaryAddressFromAddress(address)
-        })
-        .call();
+async function getAccountBalance(address: Address): Promise<Tokens | null> {
+  const result = await icpCanister.account_balance({
+    account: binaryAddressFromAddress(address)
+  }).call();
+
+  return result?.Ok || null;
 }
 
-async function getTransferFee(): Promise<Result<TransferFee, string>> {
-    return await icpCanister.transfer_fee({}).call();
+async function getTransferFee(): Promise<TransferFee | null> {
+  const result = await icpCanister.transfer_fee({}).call();
+
+  return result?.Ok || null;
 }
 
+// Provide documentation for the functions and parameters
 
-// a workaround to make uuid package work with Azle
+/**
+ * Get the hexadecimal address string from a Principal.
+ * @param principal The Principal to convert.
+ * @returns The hexadecimal address string.
+ */
+export function getAddressFromPrincipal(principal: Principal): string {
+  return hexAddressFromPrincipal(principal, 0);
+}
+
+// Set the owner based on the text representation of the Principal
+const owner: Principal = Principal.fromText("bnz7o-iuaaa-aaaaa-qaaaa-cai");
+
+// Generate random UUIDs using a more compatible approach
+function generateUUID(): string {
+  let uuid = '';
+  for (let i = 0; i < 32; i++) {
+    uuid += Math.floor(Math.random() * 16).toString(16);
+  }
+  return `${uuid.substr(0, 8)}-${uuid.substr(8, 4)}-${uuid.substr(12, 4)}-${uuid.substr(16, 4)}-${uuid.substr(20)}`;
+}
+
 globalThis.crypto = {
-    //@ts-ignore
-    getRandomValues: () => {
-        let array = new Uint8Array(32);
-
-        for (let i = 0; i < array.length; i++) {
-            array[i] = Math.floor(Math.random() * 256);
-        }
-        return array;
+  getRandomValues: (array: Uint8Array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
     }
+  }
 };
