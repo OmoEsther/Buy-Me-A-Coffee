@@ -1,0 +1,13 @@
+{
+  "canisters": {
+    "buy_me_a_coffee": {
+      "main": "src/index.ts",
+      "type": "custom",
+      "build": "npx azle buy_me_a_coffee",
+      "root": "src",
+      "ts": "src/index.ts",
+      "candid": "src/index.did",
+      "wasm": ".azle/buy_me_a_coffee/buy_me_a_coffee.wasm.gz"
+    }
+  }
+}
