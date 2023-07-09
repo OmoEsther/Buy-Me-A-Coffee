@@ -34,12 +34,12 @@ const icpCanister = new Ledger(
 // set up with wallet of local user 
 const owner: Principal = Principal.fromText("bnz7o-iuaaa-aaaaa-qaaaa-cai")
 
+const coffeeStorage = new StableBTreeMap<string, Coffee>(0, 44, 1024);
+
 $query;
 export function getAddressFromPrincipal(principal: Principal): string {
     return hexAddressFromPrincipal(principal, 0);
 }
-
-const coffeeStorage = new StableBTreeMap<string, Coffee>(0, 44, 1024);
 
 $query;
 export function getCoffees(): Result<Vec<Coffee>, string> {
@@ -59,7 +59,7 @@ export async function sendCoffee(payload: CoffeePayload): Promise<Result<Coffee,
     await depositCoffee(payload.amount);
     const coffee: Coffee = { id: uuidv4(), timestamp: ic.time(), ...payload };
     coffeeStorage.insert(coffee.id, coffee);
-    return  Result.Ok<Coffee, string>(coffee)
+    return Result.Ok<Coffee, string>(coffee);
 }
 
 $update;
@@ -70,30 +70,48 @@ export function deleteCoffee(id: string): Result<Coffee, string> {
     });
 }
 
-async function depositCoffee(
-    amount: nat64,
-): Promise<Result<TransferResult, string>> {
-    const balance = (await getAccountBalance(ic.caller().toText())).Ok?.e8s;
-    const transfer_fee = (await getTransferFee()).Ok?.transfer_fee.e8s
+$query;
+export function searchCoffeeByCriteria(criteria: string): Result<Vec<Coffee>, string> {
+    const filteredCoffees = coffeeStorage.values().filter((coffee) => {
+        return (
+            coffee.name.toLowerCase().includes(criteria.toLowerCase()) ||
+            coffee.message.toLowerCase().includes(criteria.toLowerCase())
+        );
+    });
+    return Result.Ok(filteredCoffees);
+}
 
-    if(balance !== undefined && balance > amount){
-        return await icpCanister
-            .transfer({
-                memo: 0n,
-                amount: {
-                    e8s: amount
-                },
-                fee: {
-                    e8s: transfer_fee? transfer_fee : 10000n 
-                },
-                from_subaccount: Opt.None,
-                to: binaryAddressFromAddress(icpCanisterAddress),
-                created_at_time: Opt.None
-            })
-            .call();
-    } else{
-        ic.trap("Fund your account first")
+$update;
+export function updateCoffee(id: string, updatedCoffee: CoffeePayload): Result<Coffee, string> {
+    const existingCoffee = coffeeStorage.get(id);
+    if (!existingCoffee) {
+        return Result.Err(`coffee information with id=${id} not found`);
     }
+
+    const updatedRecord: Coffee = {
+        ...existingCoffee,
+        name: updatedCoffee.name,
+        message: updatedCoffee.message,
+    };
+
+    coffeeStorage.insert(id, updatedRecord);
+
+    return Result.Ok(updatedRecord);
+}
+
+$query;
+export function getCoffeesWithPagination(pageSize: number, page: number): Result<Vec<Coffee>, string> {
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const coffees = coffeeStorage.values();
+
+    if (startIndex >= coffees.length) {
+        return Result.Err("Invalid page number");
+    }
+
+    const paginatedCoffees = coffees.slice(startIndex, endIndex);
+
+    return Result.Ok(paginatedCoffees);
 }
 
 $update;
@@ -153,4 +171,16 @@ globalThis.crypto = {
         }
         return array;
     }
+};
+
+export default {
+    getAddressFromPrincipal,
+    getCoffees,
+    getCoffee,
+    sendCoffee,
+    deleteCoffee,
+    searchCoffeeByCriteria,
+    updateCoffee,
+    getCoffeesWithPagination,
+    withdrawFunds
 };
