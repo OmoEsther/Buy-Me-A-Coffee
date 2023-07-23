@@ -1,3 +1,4 @@
+type AddressPayload = record { address : text };
 type Coffee = record {
   id : text;
   name : text;
@@ -5,27 +6,20 @@ type Coffee = record {
   timestamp : nat64;
 };
 type CoffeePayload = record { name : text; message : text; amount : nat64 };
-type ManualReply = variant { Ok : TransferResult; Err : text };
-type Tokens = record { e8s : nat64 };
-type TransferError = variant {
-  TxTooOld : _InlineTransferErrorTxTooOld;
-  BadFee : _InlineTransferErrorBadFee;
-  TxDuplicate : _InlineTransferErrorTxDuplicate;
-  TxCreatedInFuture;
-  InsufficientFunds : _InlineTransferErrorInsufficientFunds;
-};
-type TransferResult = variant { Ok : nat64; Err : TransferError };
+type ManualReply = variant { Ok : bool; Err : text };
+type ManualReply_1 = variant { Ok : text; Err : text };
+type ManualReply_2 = variant { Ok : nat64; Err : text };
 type _AzleResult = variant { Ok : Coffee; Err : text };
 type _AzleResult_1 = variant { Ok : vec Coffee; Err : text };
-type _InlineTransferErrorBadFee = record { expected_fee : Tokens };
-type _InlineTransferErrorInsufficientFunds = record { balance : Tokens };
-type _InlineTransferErrorTxDuplicate = record { duplicate_of : nat64 };
-type _InlineTransferErrorTxTooOld = record { allowed_window_nanos : nat64 };
+type initPayload = record { network : int8 };
 service : () -> {
   deleteCoffee : (text) -> (_AzleResult);
   getAddressFromPrincipal : (principal) -> (text) query;
   getCoffee : (text) -> (_AzleResult) query;
   getCoffees : () -> (_AzleResult_1) query;
+  getFaucetTokens : () -> (ManualReply);
+  initialize : (initPayload) -> (ManualReply_1);
   sendCoffee : (CoffeePayload) -> (_AzleResult);
-  withdrawFunds : (text, nat64) -> (ManualReply);
+  walletBalanceLocal : (AddressPayload) -> (ManualReply_2);
+  withdrawFunds : (text, nat64) -> (ManualReply_1);
 }

@@ -7,3 +7,20 @@ Buy Me A Coffee is a popular service that creators, educators, entertainers, and
 It's basically just a way of giving your audience an easy way to say thanks. It can be added to people's pages on their popular social media handles.
 
 And also creators can avoid the inconveniences of establishing a full-fledged business in order to share and monetize their work.
+
+## To deploy
+
+    ```
+    dfx deploy
+    ```
+
+## Testing locally
+
+Added the dummy tokens which allows users to test the canister locally.
+
+Steps involved:
+
+- Deploy canister
+- Run the `initialize` function setting the payload network to 0
+- Then claim faucet dummy tokens using the `getFaucetTokens` function
+- Then you should be able to test the canister properly.
