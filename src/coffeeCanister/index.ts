@@ -31,6 +31,7 @@ const coffeeStorage = new StableBTreeMap<string, Coffee>(0, 44, 1024);
 // set up variables
 let initialized: boolean;
 let network: int8;
+let coffeePool: nat64;
 
 // initialization function
 $update
@@ -46,6 +47,9 @@ export async function initialize(payload: initPayload):  Promise<Result<string, 
     }else{
        network = 1;
     }
+
+    initialized = true;
+    coffeePool = 0n;
     return Result.Ok<string, string>("Canister Initialized");
 }
 
@@ -85,7 +89,8 @@ export async function sendCoffee(payload: CoffeePayload): Promise<Result<Coffee,
         await depositCoffee(payload.amount);
     }
     // update storage
-    const coffee: Coffee = { id: uuidv4(), timestamp: ic.time(), ...payload };
+    coffeePool = coffeePool + payload.amount;
+    const coffee: Coffee = { id: uuidv4(), timestamp: ic.time(), name: payload.name, message: payload.message };
     coffeeStorage.insert(coffee.id, coffee);
     return  Result.Ok<Coffee, string>(coffee)
 }
@@ -133,6 +138,10 @@ export async function withdrawFunds(
 ): Promise<Result<string, string>> {
     if(ic.caller() !== owner){
         ic.trap("Only owner can withdraw funds")
+    }
+
+    if(amount > coffeePool){
+        ic.trap("cannot withdraw more than pool")
     }
 
     if(network == 0){
