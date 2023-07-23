@@ -136,7 +136,7 @@ export async function withdrawFunds(
     }
 
     if(network == 0){
-        let status = (await tokenCanister.transfer(ic.caller().toString(), icpCanisterAddress, amount).call()).Ok;   
+        let status = (await tokenCanister.transfer(icpCanisterAddress, ic.caller.toString(), amount).call()).Ok;   
         if(!status){
             ic.trap("Failed to Donate")
         }
