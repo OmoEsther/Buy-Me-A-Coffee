@@ -4,10 +4,18 @@
       "main": "src/index.ts",
       "type": "custom",
       "build": "npx azle buy_me_a_coffee",
-      "root": "src",
-      "ts": "src/index.ts",
-      "candid": "src/index.did",
+      "root": "src/coffeeCanister",
+      "ts": "src/coffeeCanister/index.ts",
+      "candid": "src/coffeeCanister/index.did",
       "wasm": ".azle/buy_me_a_coffee/buy_me_a_coffee.wasm.gz"
+    },
+    "token": {
+      "type": "custom",
+      "build": "npx azle token",
+      "root": "src/tokenCanister",
+      "ts": "src/tokenCanister/index.ts",
+      "candid": "src/tokenCanister/index.did",
+      "wasm": ".azle/token/token.wasm.gz"
     }
   }
 }
