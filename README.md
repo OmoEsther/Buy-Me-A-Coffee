@@ -23,10 +23,11 @@ dfx canister create --all
 ```
 
 3. Update addresses in `src/coffeeCanister/index.ts` file
+
     CoffeeCanister Field: [location](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L15)
     TokenCanister Field: [location](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L19C25-L19C25)
 
-4. Build Canisters
+5. Build Canisters
  
 ```
 dfx build
