@@ -22,11 +22,11 @@ dfx start --background --clean
 dfx canister create --all
 ```
 
-Take note of three addresses
-
-- Wallet address
-- Coffee canister address
-- Token canister address
+    Take note of three addresses
+    
+    - Wallet address
+    - Coffee canister address
+    - Token canister address
 
 3. Update addresses in `src/coffeeCanister/index.ts` file
 
