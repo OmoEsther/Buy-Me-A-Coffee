@@ -22,11 +22,19 @@ dfx start --background --clean
 dfx canister create --all
 ```
 
+Take note of three addresses
+
+- Wallet address
+- Coffee canister address
+- Token canister address
+
 3. Update addresses in `src/coffeeCanister/index.ts` file
 
     CoffeeCanister Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L15)
    
     TokenCanister Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L19C25-L19C25)
+
+    UserWallet Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L27C1-L27C1)
 
 5. Build Canisters
  
