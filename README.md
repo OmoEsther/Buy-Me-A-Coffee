@@ -24,8 +24,9 @@ dfx canister create --all
 
 3. Update addresses in `src/coffeeCanister/index.ts` file
 
-    CoffeeCanister Field: [location](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L15)
-    TokenCanister Field: [location](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L19C25-L19C25)
+    CoffeeCanister Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L15)
+   
+    TokenCanister Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L19C25-L19C25)
 
 5. Build Canisters
  
@@ -46,6 +47,6 @@ Added the dummy tokens which allows users to test the canister locally.
 Steps involved:
 
 - Deploy canister
-- Run the `init` function setting the payload network to 0 with required parameters
+- Run the `initialize` function setting the payload network to 0 with required parameters
 - Then claim faucet dummy tokens using the `getFaucetTokens` function
 - Then you should be able to test the canister properly.
