@@ -10,17 +10,19 @@ And also creators can avoid the inconveniences of establishing a full-fledged bu
 
 ## To deploy
 
-1. Start Icp network
+1. Start ICP network
 
-```
+```bash
 dfx start --background --clean
 ```
 
 2. Generate canister addresses
 
-```
+```bash
 dfx canister create --all
 ```
+
+![img](./src/assets/img/createCanister.gif)
 
     Take note of three addresses
     
@@ -31,22 +33,31 @@ dfx canister create --all
 3. Update addresses in `src/coffeeCanister/index.ts` file
 
     CoffeeCanister Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L15)
-   
+
     TokenCanister Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L19C25-L19C25)
 
     UserWallet Address: [Field](https://github.com/OmoEsther/Buy-Me-A-Coffee/blob/main/src/coffeeCanister/index.ts#L27C1-L27C1)
 
-5. Build Canisters
- 
-```
+    ![img](./src/assets/img/updateAddress.gif)
+
+4. Build Canisters
+
+```bash
 dfx build
 ```
 
+ ![img](./src/assets/img/build.gif)
+
 5. Deploy canister
- 
-```
+
+```bash
 dfx deploy
 ```
+
+ ![img](./src/assets/img/deploy.gif)
+
+1. Copy the ui address of the coffee canister
+![img](./src/assets/img/address.png)
 
 ## Testing locally
 
@@ -54,7 +65,16 @@ Added the dummy tokens which allows users to test the canister locally.
 
 Steps involved:
 
-- Deploy canister
+- Open candid interface for coffee canister in a browser
+
 - Run the `initialize` function setting the payload network to 0 with required parameters
+  
+    ![img](./src/assets/img/intial.gif)
+
 - Then claim faucet dummy tokens using the `getFaucetTokens` function
+
+    ![img](./src/assets/img/getfaucet.gif)
+
 - Then you should be able to test the canister properly.
+
+    ![img](./src/assets/img/test.gif)
